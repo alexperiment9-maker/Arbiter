@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>The Arbiter</title>
+<meta name="theme-color" content="#0f0a06">
+<meta name="description" content="Disputes of the self, weighed and settled.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#efe6d2;--paper2:#e6dbc3;--ink:#2a1d14;--faint:#86735d;--ox:#7a1f1a;--brass:#b08d3c;--night:#0f0a06}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--night)}
+body{font-family:'EB Garamond',Georgia,serif;color:var(--ink);overflow:hidden}
+#app{position:relative;max-width:560px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--paper);overflow:hidden}
+#app::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:5;
+ background:radial-gradient(ellipse 60% 40% at 92% 8%,rgba(255,190,90,.20),transparent 70%),
+ radial-gradient(ellipse at 50% 45%,transparent 50%,rgba(25,12,2,.55) 100%)}
+#glow{position:absolute;right:-30px;top:20px;width:160px;height:160px;border-radius:50%;pointer-events:none;z-index:4;
+ background:radial-gradient(circle,rgba(255,200,110,.35),transparent 65%);animation:glow 2.2s infinite ease-in-out}
+@keyframes glow{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+header{position:relative;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:3px double var(--ink);background:var(--paper)}
+.title{font-variant:small-caps;letter-spacing:.2em;font-weight:600;font-size:18px;white-space:nowrap}
+.case{font-family:'Special Elite',monospace;font-size:12px;color:var(--faint);letter-spacing:.08em}
+.hbtns{display:flex;gap:2px;margin-right:38px}
+.hbtn{font-family:'EB Garamond',serif;font-variant:small-caps;letter-spacing:.05em;font-size:14px;background:none;border:none;color:var(--ink);padding:4px 5px;cursor:pointer;border-bottom:1px solid transparent}
+.hbtn:active{border-bottom-color:var(--ink)}
+.hbtn.off{color:var(--faint);text-decoration:line-through}
+#candle{position:absolute;top:6px;right:10px;z-index:7;pointer-events:none}
+.flame{transform-origin:20px 34px;animation:flick 1.7s infinite ease-in-out}
+@keyframes flick{0%,100%{transform:scale(1,1) skewX(0)}25%{transform:scale(.94,1.06) skewX(3deg)}50%{transform:scale(1.04,.95) skewX(-2deg)}75%{transform:scale(.97,1.04) skewX(1.5deg)}}
+.flare .flame{animation:flare .5s 4 ease-in-out}
+@keyframes flare{0%,100%{transform:scale(1,1)}50%{transform:scale(1.35,1.6)}}
+#log{position:relative;flex:1;overflow-y:auto;padding:22px 22px 12px;scroll-behavior:smooth;
+ background-image:repeating-linear-gradient(transparent 0 31px,rgba(120,90,60,.11) 31px 32px);
+ background-attachment:local}
+.arb{font-family:'Special Elite',monospace;font-size:17px;line-height:1.55;margin:0 0 14px;max-width:92%}
+.you{font-style:italic;font-size:18px;color:#4a3a2c;margin:0 0 16px auto;max-width:85%;text-align:right;border-right:2px solid var(--ox);padding-right:10px}
+.caret{animation:blink .8s steps(1) infinite;margin-left:1px}
+@keyframes blink{50%{opacity:0}}
+.verdict{text-align:center;margin:22px 0 20px}
+.stamp{display:inline-block;font-family:'EB Garamond',serif;font-weight:700;font-size:40px;letter-spacing:.12em;color:var(--ox);
+ border:4px double var(--ox);padding:2px 18px 4px;transform:rotate(-6deg);text-transform:uppercase;opacity:.9;
+ filter:url(#rough);animation:stampIn .32s cubic-bezier(.2,.9,.3,1.2);max-width:95%;overflow-wrap:break-word}
+.stamp.m{font-size:30px}.stamp.s{font-size:23px}
+@keyframes stampIn{0%{transform:rotate(-6deg) scale(2.2);opacity:0}100%{transform:rotate(-6deg) scale(1);opacity:.9}}
+.small{font-family:'Special Elite',monospace;font-size:12.5px;color:var(--faint);text-align:center;margin:4px 0 6px}
+.linkbtn{display:block;margin:0 auto 16px;background:none;border:none;font-family:'EB Garamond',serif;font-style:italic;font-size:15px;color:var(--ox);text-decoration:underline;cursor:pointer}
+#input{position:relative;z-index:6;padding:12px 16px 18px;border-top:1px solid rgba(42,29,20,.3);background:var(--paper2);max-height:58%;overflow-y:auto}
+#input:empty{padding:0;border:none}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{font-family:'Special Elite',monospace;font-size:15px;background:transparent;border:1.5px solid var(--ink);color:var(--ink);padding:9px 14px;border-radius:2px;cursor:pointer}
+.opt:active{background:var(--ink);color:var(--paper)}
+.go{margin-top:10px;width:100%;letter-spacing:.15em}
+form.ask{display:flex;gap:10px;align-items:flex-end}
+form.ask input{flex:1;min-width:0;font-family:'Special Elite',monospace;font-size:17px;border:none;border-bottom:1.5px solid var(--ink);background:transparent;padding:8px 2px;outline:none;color:var(--ink)}
+form.ask input::placeholder{color:#a8957c}
+.dial{margin:4px 0 12px}
+.dl{display:flex;justify-content:space-between;font-variant:small-caps;letter-spacing:.08em;font-size:16px}
+.dl b{font-family:'Special Elite',monospace;font-weight:400}
+.ends{display:flex;justify-content:space-between;font-size:12px;font-style:italic;color:var(--faint)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:2px;background:var(--ink);margin:12px 0 6px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f3dc93,#b08d3c 55%,#6b4b16);border:1.5px solid var(--ink);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#b08d3c;border:1.5px solid var(--ink)}
+/* coin stage */
+#stage{position:absolute;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(12,8,4,.9);perspective:900px;color:#e9dcc0}
+#stage.show{display:flex;animation:fade .4s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+#lift.up{animation:lift 2.4s cubic-bezier(.3,.7,.4,1)}
+@keyframes lift{0%{transform:translateY(0)}45%{transform:translateY(-190px)}100%{transform:translateY(0)}}
+#coin{position:relative;width:160px;height:160px;transform-style:preserve-3d;cursor:pointer}
+.face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
+ background:radial-gradient(circle at 34% 28%,#f6e3a0,#c9a14a 42%,#8a6420 78%,#5e4210 100%);
+ box-shadow:inset 0 0 0 6px rgba(90,62,16,.55),inset 0 0 0 9px rgba(246,227,160,.5),inset 0 0 0 12px rgba(90,62,16,.4),0 0 40px rgba(255,190,90,.25)}
+.face.front{transform:translateZ(5px)}
+.face.back{transform:rotateX(180deg) translateZ(5px)}
+.face svg{width:62%;height:62%}
+#rim{position:absolute;left:0;top:75px;width:160px;height:10px;background:linear-gradient(#5e4210,#e0c070,#5e4210);transform:rotateX(90deg)}
+.legend{margin-top:46px;font-family:'Special Elite',monospace;font-size:14px;text-align:center;line-height:1.9;padding:0 20px}
+.legend svg{width:18px;height:18px;vertical-align:-3px;margin-right:6px}
+#tossCap{min-height:30px;margin-top:18px;font-family:'EB Garamond',serif;font-size:22px;font-style:italic;color:#f3dc93;text-align:center;padding:0 16px}
+.hint{font-size:14px;font-style:italic;color:#a8957c;margin-top:8px}
+/* sheets */
+.sheet{position:absolute;inset:0;z-index:30;background:var(--paper);display:none;overflow-y:auto;padding:22px 22px 40px}
+.sheet.show{display:block;animation:fade .3s}
+.sheet h2{font-variant:small-caps;letter-spacing:.25em;font-weight:600;text-align:center;border-bottom:3px double var(--ink);padding-bottom:10px;margin:6px 0 18px}
+.sheet h3{font-variant:small-caps;letter-spacing:.15em;font-weight:600;margin:22px 0 8px}
+.sheet table{width:100%;border-collapse:collapse;font-family:'Special Elite',monospace;font-size:13px}
+.sheet td,.sheet th{border-bottom:1px solid rgba(42,29,20,.25);padding:7px 4px;text-align:left;vertical-align:top}
+.sheet th{font-family:'EB Garamond',serif;font-variant:small-caps;letter-spacing:.08em;font-size:14px}
+.sheet p{font-size:16px;line-height:1.5}
+.entry{border-bottom:1px solid rgba(42,29,20,.25);padding:10px 0}
+.entry .n{font-family:'Special Elite',monospace;font-size:12px;color:var(--faint)}
+.entry .q{font-size:17px;font-style:italic;margin:2px 0}
+.entry .r{font-family:'Special Elite',monospace;font-size:13px}
+.lore{font-style:italic;font-size:16px;line-height:1.5;border-left:2px solid var(--ox);padding-left:12px;margin:10px 0}
+.sealed{color:var(--faint);font-family:'Special Elite',monospace;font-size:13px;margin:8px 0}
+.close{position:sticky;top:0;float:right;font-family:'EB Garamond',serif;font-variant:small-caps;letter-spacing:.12em;font-size:15px;background:var(--paper);border:1.5px solid var(--ink);padding:4px 12px;cursor:pointer}
+.opt.sel{background:var(--ink);color:var(--paper)}
+.opt:disabled{opacity:.45}
+.opt.rank[data-n]:not([data-n=""])::before{content:attr(data-n) ". ";color:#f3dc93}
+.help{font-size:14px;color:var(--ink);border:1px solid var(--ox);padding:10px;margin:6px 10px 14px;line-height:1.7}
+.help a{color:var(--ox)}
+.sheet.locked .close{display:none}
+.tsub{text-align:center;font-style:italic;color:var(--faint);font-size:15px}
+.terms{padding-left:22px;font-size:16px;line-height:1.55}
+.terms li{margin-bottom:12px}
+.tbtns{display:flex;gap:10px;justify-content:center;margin:18px 0 10px}
+.tbtns .opt{min-width:120px}
+.burn{margin-top:30px;font-family:'Special Elite',monospace;background:none;border:1px solid var(--ox);color:var(--ox);padding:8px 12px;cursor:pointer}
+/* door */
+#door{position:absolute;inset:0;z-index:40;background:radial-gradient(ellipse at 50% 40%,#2a1a0c,#0f0a06 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#e9dcc0;text-align:center;transition:opacity .9s}
+#door.gone{opacity:0;pointer-events:none}
+#door .big{font-variant:small-caps;letter-spacing:.35em;font-size:30px;font-weight:600;margin:18px 0 6px}
+#door .sub{font-style:italic;color:#a8957c;font-size:16px;margin-bottom:40px}
+#door button{font-family:'Special Elite',monospace;font-size:16px;letter-spacing:.2em;background:none;color:#f3dc93;border:1.5px solid #b08d3c;padding:12px 28px;cursor:pointer}
+#door .fine{position:absolute;bottom:22px;font-size:12px;color:#6d5c48;font-family:'Special Elite',monospace}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.2"/></filter>
+  <radialGradient id="fg" cx="50%" cy="62%" r="55%"><stop offset="0" stop-color="#fff6c8"/><stop offset=".45" stop-color="#ffc24a"/><stop offset="1" stop-color="#e2561b" stop-opacity="0"/></radialGradient>
+  <symbol id="scaleSym" viewBox="0 0 100 100"><g stroke="#4a320c" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="15" r="4"/><line x1="50" y1="19" x2="50" y2="80"/><line x1="20" y1="30" x2="80" y2="30"/><path d="M20 30 L10 56 M20 30 L30 56 M80 30 L70 56 M80 30 L90 56"/><path d="M8 56 Q20 68 32 56 Z M68 56 Q80 68 92 56 Z"/><path d="M34 84 H66"/></g></symbol>
+  <symbol id="starSym" viewBox="0 0 100 100"><polygon points="50,12 59,39 88,39 65,56 74,85 50,68 26,85 35,56 12,39 41,39" fill="none" stroke="#4a320c" stroke-width="4" stroke-linejoin="round"/><circle cx="50" cy="52" r="5" fill="#4a320c"/></symbol>
+ </defs>
+</svg>
+
+<div id="app">
+ <div id="glow"></div>
+ <svg id="candle" viewBox="0 0 40 90" width="30" height="68" aria-hidden="true">
+  <g class="flame"><ellipse cx="20" cy="20" rx="6.5" ry="14" fill="url(#fg)"/><ellipse cx="20" cy="26" rx="2.2" ry="5" fill="#fffbe6"/></g>
+  <line x1="20" y1="32" x2="20" y2="38" stroke="#2a1d14" stroke-width="1.5"/>
+  <rect x="12" y="37" width="16" height="44" rx="1.5" fill="#e9dcc0" stroke="#7d6a52" stroke-width=".8"/>
+  <path d="M12 40 q3 5 6 0 q3 7 5 0 q2 4 5 0" fill="#f6eedb" stroke="#cbbb9c" stroke-width=".5"/>
+  <rect x="6" y="80" width="28" height="5" rx="2" fill="#6b4b16"/>
+ </svg>
+ <header>
+  <div><div class="title">The Arbiter</div><div class="case" id="caseNo">Case No. —</div></div>
+  <div class="hbtns"><button class="hbtn" id="ledgerBtn">Ledger</button><button class="hbtn" id="soundBtn">Sound</button><button class="hbtn" id="musicBtn">Music</button></div>
+ </header>
+ <main id="log" aria-live="polite"></main>
+ <div id="input"></div>
+
+ <div id="stage">
+  <div id="lift"><div id="coin">
+   <div class="face front"><svg><use href="#scaleSym"/></svg></div>
+   <div id="rim"></div>
+   <div class="face back"><svg><use href="#starSym"/></svg></div>
+  </div></div>
+  <div class="legend"><div><svg><use href="#scaleSym" style="stroke:#e9dcc0"/></svg><span id="legA"></span></div><div><svg><use href="#starSym"/></svg><span id="legB"></span></div></div>
+  <div id="tossCap"></div>
+ </div>
+
+ <div class="sheet" id="sheet"><button class="close" id="closeSheet">Close</button><div id="sheetBody"></div></div>
+
+ <div id="door">
+  <svg viewBox="0 0 40 90" width="44" height="100" aria-hidden="true">
+   <g class="flame"><ellipse cx="20" cy="20" rx="6.5" ry="14" fill="url(#fg)"/><ellipse cx="20" cy="26" rx="2.2" ry="5" fill="#fffbe6"/></g>
+   <line x1="20" y1="32" x2="20" y2="38" stroke="#000" stroke-width="1.5"/>
+   <rect x="12" y="37" width="16" height="44" rx="1.5" fill="#d9caa8"/>
+   <rect x="6" y="80" width="28" height="5" rx="2" fill="#6b4b16"/>
+  </svg>
+  <div class="big">The Arbiter</div>
+  <div class="sub">Disputes of the self, weighed and settled.</div>
+  <button id="knock">Knock to enter</button>
+  <div class="fine">Everything stays on this device.</div>
+ </div>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const log=$('#log'), inp=$('#input');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- storage ---------- */
+const TERMS_V=1;
+function fresh(){return {cases:[],cw:{},pending:null,sound:true,music:true,agreed:0};}
+let store=fresh();
+try{const s=localStorage.getItem('arbiter.v1');if(s)store=Object.assign(store,JSON.parse(s));}catch(e){}
+if(!store.cw||typeof store.cw!=='object')store.cw={};
+function save(){try{localStorage.setItem('arbiter.v1',JSON.stringify(store));}catch(e){}}
+
+/* ---------- sound ---------- */
+let ac=null;
+function unlock(){if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ac&&ac.state==='suspended')ac.resume().catch(()=>{});}
+document.addEventListener('pointerdown',unlock,{passive:true});
+document.addEventListener('keydown',unlock);
+const on=()=>ac&&store.sound;
+function noiseBuf(dur,pow=3){const b=ac.createBuffer(1,Math.floor(ac.sampleRate*dur),ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,pow);return b;}
+let clickBuf=null;
+function sClick(){if(!on())return;if(!clickBuf)clickBuf=noiseBuf(.025);const s=ac.createBufferSource();s.buffer=clickBuf;const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=1600+Math.random()*1000;f.Q.value=1.3;const g=ac.createGain();g.gain.value=.22;s.connect(f).connect(g).connect(ac.destination);s.start();}
+function tone(freq,dur,vol,type,delay){if(!on())return;const t=ac.currentTime+(delay||0);const o=ac.createOscillator();o.type=type||'sine';o.frequency.value=freq;const g=ac.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+.05);}
+function sBell(){tone(2093,1.1,.05);tone(4186,.5,.015);}
+function sClink(delay){[2350,3610,5230,6890].forEach((f,i)=>tone(f*(.98+Math.random()*.04),.55-i*.09,.09/(i+1),'sine',delay));}
+function sThud(){tone(95,.28,.35);tone(190,.12,.08);}
+function sRustle(){if(!on())return;const s=ac.createBufferSource();s.buffer=noiseBuf(.32,1.5);const f=ac.createBiquadFilter();f.type='highpass';f.frequency.value=2800;const g=ac.createGain();g.gain.value=.07;s.connect(f).connect(g).connect(ac.destination);s.start();}
+function sKnock(){tone(80,.18,.5);tone(160,.08,.15);}
+
+/* ---------- the gramophone: an original chamber lament in D minor ---------- */
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const M={on:false,out:null,strings:null,lead:null,vib:null,timer:null,next:0,loop:0};
+const BEAT=1.15; // ~52 bpm, slow and grave
+const CH=[[50,57,62,65],[46,53,62,65],[43,50,58,62],[45,52,61,64],[50,57,62,65],[46,55,62,67],[52,55,58,62],[45,52,61,64]];
+const MEL=[[69,2],[74,2],[74,1.5],[72,.5],[70,2],[70,2],[69,2],[67,2],[73,2],[74,3],[76,1],[77,2],[74,2],[76,2],[70,2],[69,4]];
+function impulse(sec){const n=Math.floor(ac.sampleRate*sec),b=ac.createBuffer(2,n,ac.sampleRate);for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.6);}return b;}
+function crackleBuf(){const sec=5,n=ac.sampleRate*sec,b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);
+ for(let i=0;i<n;i++){d[i]+=(Math.random()*2-1)*0.012;
+  if(Math.random()<0.00045){const a=(Math.random()<.08?1:.35)*(Math.random()<.5?-1:1);const len=20+Math.floor(Math.random()*60);for(let k=0;k<len&&i+k<n;k++)d[i+k]+=a*Math.exp(-k/8)*(Math.random()*.6+.4);}}
+ return b;}
+function buildGramophone(){
+ const master=ac.createGain();master.gain.value=0;
+ // old record band-limit
+ const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=170;
+ const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;lp.Q.value=.5;
+ const mid=ac.createBiquadFilter();mid.type='peaking';mid.frequency.value=1100;mid.gain.value=4;mid.Q.value=.8;
+ // wow & flutter: a modulated delay bends the pitch like a warped disc
+ const wow=ac.createDelay(0.1);wow.delayTime.value=0.02;
+ const l1=ac.createOscillator();l1.frequency.value=0.55;const g1=ac.createGain();g1.gain.value=0.0018;l1.connect(g1).connect(wow.delayTime);l1.start();
+ const l2=ac.createOscillator();l2.frequency.value=6.3;const g2=ac.createGain();g2.gain.value=0.00012;l2.connect(g2).connect(wow.delayTime);l2.start();
+ // far-away room
+ const verb=ac.createConvolver();verb.buffer=impulse(3.4);const wet=ac.createGain();wet.gain.value=.55;const dry=ac.createGain();dry.gain.value=.6;
+ const music=ac.createGain();music.gain.value=1;
+ music.connect(wow);wow.connect(hp);hp.connect(mid);mid.connect(lp);
+ lp.connect(dry);lp.connect(verb);verb.connect(wet);dry.connect(master);wet.connect(master);
+ // surface noise
+ const cr=ac.createBufferSource();cr.buffer=crackleBuf();cr.loop=true;
+ const crf=ac.createBiquadFilter();crf.type='bandpass';crf.frequency.value=2200;crf.Q.value=.6;const crg=ac.createGain();crg.gain.value=.55;
+ cr.connect(crf).connect(crg).connect(master);cr.start();
+ master.connect(ac.destination);
+ // section buses
+ const strings=ac.createGain();strings.gain.value=.045;const sf=ac.createBiquadFilter();sf.type='lowpass';sf.frequency.value=1300;strings.connect(sf).connect(music);
+ const lead=ac.createGain();lead.gain.value=.06;const lf=ac.createBiquadFilter();lf.type='lowpass';lf.frequency.value=2200;lead.connect(lf).connect(music);
+ const vib=ac.createOscillator();vib.frequency.value=5.2;const vg=ac.createGain();vg.gain.value=9;vib.connect(vg);vib.start();
+ Object.assign(M,{out:master,strings,lead,vib:vg});
+}
+function bow(bus,m,t,dur,vol,att,rel,dets){
+ const g=ac.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+att);g.gain.setTargetAtTime(0,t+dur,rel/3);g.connect(bus);
+ dets.forEach(dt=>{const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=mtof(m);o.detune.value=dt;M.vib.connect(o.detune);o.connect(g);o.start(t);o.stop(t+dur+rel+.2);});
+}
+function scheduleLoop(t0){
+ const lp=M.loop++;
+ CH.forEach((ch,i)=>{const t=t0+i*4*BEAT;ch.forEach((m,j)=>bow(M.strings,m,t,4*BEAT-.1,j===0?1.2:.85,1.6,2.4,[-7,0,6]));});
+ if(lp%3!==1){ // the violin rests every third pass, then returns
+  const oct=lp%3===2?-12:0;let t=t0;
+  MEL.forEach(([m,b])=>{bow(M.lead,m+oct,t,b*BEAT-.05,1,.28,.9,[-3,3]);t+=b*BEAT;});
+ }
+ return t0+CH.length*4*BEAT;
+}
+function tick(){if(!M.on)return;while(M.next<ac.currentTime+6){M.next=scheduleLoop(M.next);}M.timer=setTimeout(tick,1500);}
+function musicStart(){if(!ac||!store.music||M.on)return;if(!M.out)buildGramophone();M.on=true;
+ const t=ac.currentTime;M.out.gain.cancelScheduledValues(t);M.out.gain.setValueAtTime(M.out.gain.value,t);M.out.gain.linearRampToValueAtTime(.35,t+7);
+ M.next=Math.max(M.next,t+.3);tick();}
+function musicStop(){if(!M.on)return;M.on=false;clearTimeout(M.timer);const t=ac.currentTime;M.out.gain.cancelScheduledValues(t);M.out.gain.setValueAtTime(M.out.gain.value,t);M.out.gain.linearRampToValueAtTime(0,t+1.5);}
+document.addEventListener('visibilitychange',()=>{if(!ac)return;if(document.hidden)ac.suspend().catch(()=>{});else ac.resume().catch(()=>{});});
+
+/* ---------- lines ---------- */
+const L={
+ firstGreet:["So. Someone has found the door.","Come in. Close the door behind you — the draught troubles the candle."],
+ returnGreet:["Ah. You return.","Back again. The ledger remembers you.","You again. Sit. The chair is still warm."],
+ morning:["A clear morning mind. Speak.","Morning. The best hour for hard questions."],
+ afternoon:["The afternoon is long. We have time.","The day is half spent. Let us not waste the rest."],
+ evening:["Evening. The candle is fresh.","The light is going. A good hour for honest thoughts."],
+ late:["It is late. Decisions made at this hour are rarely kind.","The hour is late… yet you came. It must matter."],
+ askDilemma:["State your dilemma.","What troubles you? State it plainly.","Speak your dilemma. Plain words, please."],
+ money:["Coin is involved. I will weigh it carefully.","Money. The most convincing liar in any room."],
+ work:["Your future self has a stake in this.","Work and years. Heavy things."],
+ heart:["Matters of the heart weigh more than they look.","People. The hardest scales to balance."],
+ travel:["A journey… I see.","Roads. Always roads."],
+ health:["The body keeps its own ledger.","Health. The one debt that is always collected."],
+ rankQ:["Now order them. Tap the heaviest first.","Which weighs most? Tap them in order — heaviest first."],
+ fresh:["Now, path against path. Judge from today — forget what is already spent.","Judge them as if starting fresh. What is spent is spent."],
+ revQ:["Which of these is harder to take back?"],
+ revNote:["Noted. A door that locks behind you deserves an extra moment."],
+ pmNote:["Then that is where the danger lives. I will watch that road.","Noted. I will watch that road more closely."],
+ none:["Hmm. Interesting.","I see.","Hmm."],
+ nameFirst:["Name the first path.","The first road. Name it."],
+ nameSecond:["And the second.","And the other road?"],
+ stakesQ:["How large is this matter?","Tell me its size. Small? Or the kind that changes a life?"],
+ stateQ:["Before we weigh anything… how do you stand at this moment?","First — you. How are you, right now?"],
+ calm:["Good. A steady hand weighs truly."],
+ tired:["Tired. I will remember that."],
+ hungry:["The hungry choose quickly, and badly. Noted."],
+ upset:["Anger is a heavy thumb on any scale. I will mind it."],
+ warn:["This is no small matter, and you are not at your best. Sleep on it.","A question this size deserves a rested mind. Return tomorrow."],
+ weightsQ:["How heavily does each weigh upon you? Set the dials.","What matters to you in this? Set the weights."],
+ certQ:["How sure are you of these guesses?"],
+ sunkQ:["Forget what you have already spent on either road — money, time, pride. Does your view change?"],
+ regretQ:["A year from now… which would you miss more, had you not chosen it?"],
+ look:["Let me look…","Quiet now. Let me look…"],
+ seen:["I have seen ten thousand futures.","Ten thousand futures. I have walked each one."],
+ coinTalk:["The coin does not decide. It reveals.","Every road has a toll. The coin knows the price."],
+ touch:["Now… touch the coin when you are ready.","The coin is warm. Touch it."],
+ gutQ:["The moment it landed — what did you feel? Relief… or disappointment?","Relieved… or disappointed?"],
+ relieved:["Then it was already your choice. I merely said it aloud.","Good. The coin and your heart agree."],
+ closing:["The ink is drying. Is there another case?","The court rests. Is there more?"],
+ hesitate:["You already know, don't you?","Take your time. I have plenty of it."],
+ letRest:["Then it rests. It will keep."],
+ underdog:["The odds stood against it… yet the coin has spoken. Fortune keeps her own counsel."]
+};
+const lastPick={};
+function pick(arr){if(!Array.isArray(arr))arr=[arr];if(arr.length===1)return arr[0];let i;do{i=Math.floor(Math.random()*arr.length);}while(arr[i]===lastPick[arr[0]]);lastPick[arr[0]]=arr[i];return arr[i];}
+
+/* ---------- log ---------- */
+let skip=false;log.addEventListener('click',()=>{skip=true;});
+function scrollDown(){log.scrollTop=log.scrollHeight;}
+let q=Promise.resolve();
+function say(text,pause){q=q.then(()=>_say(text,pause==null?450:pause));return q;}
+async function _say(text,pause){
+ await sleep(skip?60:pause);skip=false;
+ const p=document.createElement('p');p.className='arb';log.appendChild(p);
+ const t=document.createTextNode(''),c=document.createElement('span');c.className='caret';c.textContent='▌';p.append(t,c);
+ for(let i=0;i<text.length;i++){
+  const ch=text[i];t.data+=ch;
+  if(!skip){if(ch!==' '&&i%2===0)sClick();let d=22+Math.random()*22;if(ch==='…')d=560;else if('.!?'.includes(ch))d=320;else if(ch===','||ch==='—')d=170;await sleep(d);}
+  if(i%10===0)scrollDown();
+ }
+ c.remove();if(!skip)sBell();skip=false;scrollDown();
+}
+function you(text){const p=document.createElement('p');p.className='you';p.textContent=text;log.appendChild(p);scrollDown();}
+function addEl(el){q=q.then(async()=>{log.appendChild(el);scrollDown();await sleep(250);});return q;}
+
+/* ---------- inputs ---------- */
+let idle=null,hesitated=false;
+function armIdle(){clearTimeout(idle);if(hesitated)return;idle=setTimeout(()=>{hesitated=true;say(pick(L.hesitate),0);},40000);}
+function clearInput(){clearTimeout(idle);inp.innerHTML='';}
+async function askChoice(opts){await q;return new Promise(res=>{clearInput();const w=document.createElement('div');w.className='opts';
+ opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.label;b.onclick=()=>{sRustle();clearInput();you(o.label);res(o.value);};w.appendChild(b);});
+ inp.appendChild(w);armIdle();scrollDown();});}
+async function askText(ph){await q;return new Promise(res=>{clearInput();const f=document.createElement('form');f.className='ask';
+ f.innerHTML='<input type="text" maxlength="140" autocomplete="off" enterkeyhint="send"><button class="opt" type="submit">Proceed</button>';
+ const i=f.querySelector('input');i.placeholder=ph;i.oninput=()=>{sClick();armIdle();};
+ f.onsubmit=e=>{e.preventDefault();const v=i.value.trim();if(!v){i.focus();return;}sRustle();clearInput();you(v);res(v);};
+ inp.appendChild(f);setTimeout(()=>i.focus(),60);armIdle();});}
+async function askSliders(defs,btn){await q;return new Promise(res=>{clearInput();const box=document.createElement('div');const vals={};
+ defs.forEach(d=>{vals[d.key]=d.val;const row=document.createElement('div');row.className='dial';
+  row.innerHTML='<div class="dl"><span></span><b></b></div><input type="range" step="1"><div class="ends"><span></span><span></span></div>';
+  const sp=row.querySelectorAll('span');sp[0].textContent=d.label;sp[1].textContent=d.lo;sp[2].textContent=d.hi;
+  const r=row.querySelector('input'),b=row.querySelector('b');r.min=d.min;r.max=d.max;r.value=d.val;b.textContent=d.val;
+  r.oninput=()=>{vals[d.key]=+r.value;b.textContent=r.value;sClick();armIdle();};box.appendChild(row);});
+ const go=document.createElement('button');go.className='opt go';go.textContent=btn||'Proceed';
+ go.onclick=()=>{sRustle();clearInput();you(defs.map(d=>d.short+' '+vals[d.key]).join(' · '));res(vals);};
+ box.appendChild(go);inp.appendChild(box);inp.scrollTop=0;armIdle();scrollDown();});}
+
+/* ---------- factors ---------- */
+const FD={
+ joy:{n:'Joy',q:'Which brings more joy?',why:'It holds more joy than its rival.',mind:'Mind the joy you give up.'},
+ money:{n:'Money',q:'Which is kinder to your purse?',why:'It is kinder to your purse.',mind:'Mind the cost.'},
+ safety:{n:'Safety',q:'Which is the safer road?',why:'It is the safer road.',mind:'Mind the risk. Go carefully.'},
+ growth:{n:'Future',q:'Which builds more for your future?',why:'It builds more for the one you will become.',mind:'Mind what it costs your future.'},
+ people:{n:'People',q:'Which is better for the people you care about?',why:'It is kinder to the people around you.',mind:'Mind the people it touches.'},
+ health:{n:'Health',q:'Which is better for your health?',why:'Your body will thank you for it.',mind:'Mind your health.'},
+ peace:{n:'Peace',q:'Which leaves you more at peace?',why:'It lets you sleep at night.',mind:'Mind your peace of mind.'},
+ time:{n:'Time',q:'Which costs you less time and effort?',why:'It spends less of your hours.',mind:'Mind the hours it will take.'},
+ values:{n:'Values',q:'Which is truer to who you want to be?',why:'It is truer to who you mean to be.',mind:'Mind that it sits right with you.'}
+};
+const ALLF=Object.keys(FD);
+const CATS={
+ money:{re:/₹|\brs\.?\b|rupee|money|buy|spend|save|saving|price|cost|loan|emi|salary|invest|laptop|phone|car\b/g,f:['joy','money','growth','peace'],name:'matters of money'},
+ work:{re:/job|quit|work|career|study|college|course|exam|business|startup|office|boss|offer|degree|client/g,f:['money','growth','peace','time','values'],name:'matters of work'},
+ heart:{re:/love|friend|girlfriend|boyfriend|family|marry|relationship|parents|mother|father|\bmom\b|\bdad\b|wife|husband|crush|sister|brother|propose/g,f:['people','peace','values','joy'],name:'matters of the heart'},
+ travel:{re:/trip|ride|travel|journey|visit|go to|tour|vacation|holiday/g,f:['joy','money','safety','time'],name:'matters of the road'},
+ health:{re:/gym|diet|sleep|health|doctor|workout|exercise|smok|drink|junk|\beat\b|weight|running/g,f:['health','time','peace','growth'],name:'matters of the body'}
+};
+function category(s){s=s.toLowerCase();let best=null,bn=0;for(const k in CATS){const m=s.match(CATS[k].re);const n=m?m.length:0;if(n>bn){bn=n;best=k;}}return best;}
+const fname=(c,f)=>FD[f]?FD[f].n:((c.custom&&c.custom[f])||f);
+function sameKeys(o,arr){const k=Object.keys(o);return k.length===arr.length&&arr.every(x=>x in o);}
+
+/* ---------- engine ---------- */
+function gauss(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const MAG={s:1,c:2.5,h:4};
+// rank-order centroid weights: a proven way to turn a ranking into weights
+function roc(order){const n=order.length,w={};order.forEach((f,i)=>{let s=0;for(let k=i+1;k<=n;k++)s+=1/k;w[f]=s/n;});return w;}
+function engine(c,opt){opt=opt||{};
+ const fs=c.factors,w={};let tot=0;
+ fs.forEach(f=>{w[f]=c.w[f]*(f==='growth'?1.15:1);tot+=w[f];});fs.forEach(f=>w[f]/=tot);   // present bias: future lifted 15%
+ const d={},sd={};
+ fs.forEach(f=>{let x=c.d[f]||0;
+  if(f==='joy')x*=0.8;                                   // impact bias: feelings over-predicted
+  if(f==='money'||f==='safety'||f==='health')x*=0.9;     // loss aversion: fear softened
+  let s=(c.sd&&c.sd[f])||1.0;
+  if(c.pm&&c.pm.f===f){x+=c.pm.lead==='a'?-0.6:0.6;s*=1.4;} // pre-mortem: named danger counts
+  d[f]=x;sd[f]=s;});
+ const N=opt.N||10000;let wa=0;
+ for(let i=0;i<N;i++){let D=0;for(const f of fs)D+=w[f]*(d[f]+gauss()*sd[f]);if(D>0||(D===0&&Math.random()<.5))wa++;}
+ const raw=wa/N;
+ const bonus=c.regret==='a'?.05:c.regret==='b'?-.05:0;
+ const rv=c.stakes==='big'?.06:.04;const rev=c.harder==='a'?-rv:c.harder==='b'?rv:0; // keep doors open
+ const p=clamp(raw+bonus+rev,.15,.85);
+ let D=0;fs.forEach(f=>D+=w[f]*d[f]);
+ let tip=null;
+ if(D!==0)fs.forEach(f=>{if(!d[f]||Math.sign(d[f])===Math.sign(D))return;const k=-D/d[f];const to=(w[f]+k)/(1+k);if(!tip||k<tip.k)tip={f,k,from:w[f],to};});
+ return {w,d,sd,N,wa,raw,bonus,rev,p,D,tip};
+}
+
+/* ---------- helpers ---------- */
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function splitPaths(qs){let s=qs.trim().replace(/[?.!]+$/,'').replace(/^(should|shall|do|can|would|will|must)\s+i\s+/i,'');
+ const parts=s.split(/\s+or\s+/i);if(parts.length!==2)return null;
+ const a=parts[0].trim().replace(/,$/,''),b=parts[1].trim();
+ if(!a||!b||a.length>40||b.length>40)return null;return[cap(a),cap(b)];}
+const pad=n=>String(n).padStart(3,'0');
+function setCaseNo(n){$('#caseNo').textContent='Case No. '+pad(n);}
+function flare(){const c=$('#candle');c.classList.remove('flare');void c.getBoundingClientRect();c.classList.add('flare');}
+const label=(c,k)=>k==='a'?c.a:k==='b'?c.b:'Neither';
+const CRISIS=/suicid|kill (myself|me)|end (my life|it all)|self[- ]?harm|hurt myself|cut myself|don'?t want to (live|be alive)|want to die/i;
+
+/* ---------- extra inputs ---------- */
+async function askMulti(opts,min,max,btn){await q;return new Promise(res=>{clearInput();const box=document.createElement('div');const w=document.createElement('div');w.className='opts';const sel=new Set();
+ const go=document.createElement('button');go.className='opt go';
+ const upd=()=>{go.disabled=sel.size<min;go.textContent=sel.size<min?'Choose '+(min-sel.size)+' more':btn;};
+ opts.forEach(o=>{const b=document.createElement('button');b.className='opt';b.textContent=o.label;
+  b.onclick=()=>{sClick();if(sel.has(o.value)){sel.delete(o.value);b.classList.remove('sel');}else if(sel.size<max){sel.add(o.value);b.classList.add('sel');}upd();armIdle();};w.appendChild(b);});
+ go.onclick=()=>{if(sel.size<min)return;sRustle();clearInput();const arr=opts.filter(o=>sel.has(o.value));you(arr.map(o=>o.label).join(' · '));res(arr.map(o=>o.value));};
+ upd();box.append(w,go);inp.appendChild(box);armIdle();scrollDown();});}
+async function askRank(items){await q;return new Promise(res=>{clearInput();const box=document.createElement('div');const w=document.createElement('div');w.className='opts';let order=[];const btns={};
+ const go=document.createElement('button');go.className='opt go';
+ const draw=()=>{items.forEach(it=>{const b=btns[it.value],i=order.indexOf(it.value);b.classList.toggle('sel',i>=0);b.dataset.n=i>=0?String(i+1):'';});
+  go.disabled=order.length<items.length;go.textContent=order.length<items.length?'Tap them, heaviest first':'So it is';};
+ items.forEach(it=>{const b=document.createElement('button');b.className='opt rank';b.textContent=it.label;btns[it.value]=b;
+  b.onclick=()=>{sClick();const i=order.indexOf(it.value);if(i>=0)order=order.slice(0,i);else order.push(it.value);draw();armIdle();};w.appendChild(b);});
+ go.onclick=()=>{if(order.length<items.length)return;sRustle();clearInput();you(order.map((v,i)=>(i+1)+'. '+items.find(x=>x.value===v).label).join('   '));res(order);};
+ draw();box.append(w,go);inp.appendChild(box);armIdle();scrollDown();});}
+
+/* ---------- flow ---------- */
+let started=false;
+async function begin(){
+ if(started)return;started=true;
+ const h=new Date().getHours(),late=h>=23||h<5;
+ setCaseNo(store.cases.length+1);
+ await say(store.cases.length?pick(L.returnGreet):pick(L.firstGreet),700);
+ await say(late?pick(L.late):h<12?pick(L.morning):h<18?pick(L.afternoon):pick(L.evening));
+ const un=store.cases.filter(c=>c.rating==null&&(c.final==='a'||c.final==='b')&&Date.now()-c.t>3*3600e3).slice(-1)[0];
+ if(un)await review(un);
+ if(store.pending){
+  await say('You left a matter with me… "'+store.pending.q+'". Shall we hear it now?');
+  const r=await askChoice([{label:'Yes, hear it',value:1},{label:'Let it rest',value:0}]);
+  if(r){const c=store.pending;store.pending=null;save();return hearing(c,!!(c.factors&&c.d));}
+  await say(pick(L.letRest));
+ }
+ return newCase();
+}
+
+async function review(c){
+ await say('Case No. '+pad(c.no)+'. You asked me: "'+c.q+'". You chose "'+label(c,c.final)+'".');
+ await say('Tell me… was it wise?');
+ const r=await askChoice([{label:'Wise',value:'wise'},{label:'Unclear',value:'unclear'},{label:'Unwise',value:'unwise'},{label:'Too soon to tell',value:'soon'}]);
+ if(r==='soon'){c.t=Date.now();save();await say('Then I will ask again another day.');return;}
+ c.rating=r;
+ if(r==='unwise'&&c.factors&&c.d&&c.w&&!(c.custom&&c.custom.x1)){
+  const ck=c.cat||'none',sg=c.final==='a'?1:-1;
+  const base=(store.cw[ck]&&sameKeys(store.cw[ck],c.factors))?store.cw[ck]:c.w;const w=Object.assign({},base);
+  c.factors.forEach(f=>{const dd=(c.d[f]||0)*sg;if(dd<0)w[f]+=.06;else if(dd>0)w[f]=Math.max(.02,w[f]-.03);});
+  let t=0;for(const f in w)t+=w[f];for(const f in w)w[f]/=t;store.cw[ck]=w;
+  await say('Then I misjudged what you value. I have corrected my scales.');
+ }else if(r==='unwise'){await say('Noted. I will remember it.');}
+ else if(r==='wise'){await say('Good. The scales hold true.');}
+ else{await say('Unclear. Most things are, at first.');}
+ save();
+}
+
+async function crisis(){
+ await say('…No. This is not a matter for a coin.',300);
+ await say('If you are thinking of harming yourself, please speak to someone now. A real voice.');
+ const p=document.createElement('p');p.className='small help';
+ p.innerHTML='India · Tele-MANAS · <b>14416</b> (free, any hour) &nbsp;·&nbsp; <a href="tel:14416">Call</a><br>Or call someone you trust, right now.';
+ await addEl(p);
+ await say('The candle will still be lit when you return. Go.');
+}
+
+async function newCase(){
+ hesitated=false;
+ const c={no:store.cases.length+1,t:Date.now()};setCaseNo(c.no);
+ await say(pick(L.askDilemma));
+ c.q=await askText('Type your dilemma…');
+ if(CRISIS.test(c.q)){await crisis();return endScreen();}
+ c.cat=category(c.q);
+ await say(c.cat?pick(L[c.cat]):pick(L.none));
+ const g=splitPaths(c.q);
+ if(g){await say('I hear two paths. "'+g[0]+'"… and "'+g[1]+'". Is that so?');
+  const ok=await askChoice([{label:'Yes',value:1},{label:'Let me name them',value:0}]);if(ok){c.a=g[0];c.b=g[1];}}
+ if(!c.a){await say(pick(L.nameFirst));c.a=await askText('First path');await say(pick(L.nameSecond));c.b=await askText('Second path');}
+ await say(pick(L.stakesQ));
+ c.stakes=await askChoice([{label:'Small',value:'small'},{label:'Considerable',value:'mid'},{label:'Life-changing',value:'big'}]);
+ return hearing(c,false);
+}
+
+async function hearing(c,resumed){
+ const h=new Date().getHours(),late=h>=23||h<5;
+ if(c.stakes!=='small'||late){
+  await say(pick(L.stateQ));
+  c.state=await askChoice([{label:'Calm & rested',value:'calm'},{label:'Tired',value:'tired'},{label:'Hungry',value:'hungry'},{label:'Upset',value:'upset'}]);
+  await say(pick(L[c.state]));
+  if(c.stakes==='big'&&(c.state!=='calm'||late)){
+   await say(pick(L.warn));
+   const r=await askChoice([{label:'I will return tomorrow',value:0},{label:'Proceed regardless',value:1}]);
+   if(!r){store.pending=c;save();await say('Wise. I will keep your question safe until then.');return endScreen();}
+   await say('As you wish. I have warned you.');
+  }
+ }
+ if(!resumed)await gather(c);
+ return judge(c);
+}
+
+async function gather(c){
+ // 1. what weighs
+ let fs=c.cat?CATS[c.cat].f.slice():null,own=false;
+ if(fs){await say('In '+CATS[c.cat].name+', these weigh most: '+fs.map(f=>FD[f].n).join(', ')+'.');
+  const r=await askChoice([{label:'These will do',value:0},{label:'Add my own',value:1},{label:'Choose others',value:2}]);
+  if(r===2)fs=null;else if(r===1)own=true;}
+ if(!fs){await say('Then choose what weighs on this. Three to five.');
+  fs=await askMulti(ALLF.map(f=>({label:FD[f].n,value:f})),3,5,'These matter');
+  await say('Something of your own to add?');own=!!(await askChoice([{label:'No',value:0},{label:'Add my own',value:1}]));}
+ c.custom={};
+ if(own){await say('Name it. Short.');const t=(await askText('e.g. What Dad will think')).slice(0,28);c.custom.x1=t;if(fs.length>=5)fs.pop();fs.push('x1');await say('"'+t+'". It goes on the scales.');}
+ c.factors=fs;
+ // 2. memory of a similar case
+ const past=store.cases.filter(p=>p.cat&&p.cat===c.cat&&(p.rating==='wise'||p.rating==='unwise')).slice(-1)[0];
+ if(past)await say('In a matter like this, you once chose "'+label(past,past.final)+'"… and later judged it '+past.rating+'.');
+ // 3. weights by ranking
+ const ck=c.cat||'none',prev=store.cw[ck];let used=false;
+ if(prev&&!own&&sameKeys(prev,fs)){
+  const ord=fs.slice().sort((x,y)=>prev[y]-prev[x]);
+  await say('Your scales from before: '+ord.map(f=>fname(c,f)).join(', ')+'. In that order. The same?');
+  if(await askChoice([{label:'The same',value:1},{label:'Reorder',value:0}])){c.w=Object.assign({},prev);used=true;}
+ }
+ if(!used){await say(pick(L.rankQ));c.w=roc(await askRank(fs.map(f=>({label:fname(c,f),value:f}))));}
+ // 4. path against path
+ await say(pick(L.fresh));
+ c.d={};
+ const byW=fs.slice().sort((x,y)=>c.w[y]-c.w[x]);
+ const skip=fs.length>=5&&!c.custom[byW[byW.length-1]]?byW[byW.length-1]:null;
+ for(const f of byW){
+  if(f===skip){c.d[f]=0;await say(fname(c,f)+' weighs little here. I will not trouble you with it.');continue;}
+  await say(FD[f]?FD[f].q:'Which is better for "'+c.custom[f]+'"?');
+  const s=await askChoice([{label:c.a,value:1},{label:c.b,value:-1},{label:'Same',value:0}]);
+  if(!s){c.d[f]=0;continue;}
+  const m=await askChoice([{label:'Slightly',value:'s'},{label:'Clearly',value:'c'},{label:'Hugely',value:'h'}]);
+  c.d[f]=s*MAG[m];
+ }
+ // 5. doubt, only where it decides
+ c.sd={};
+ const top=fs.filter(f=>c.d[f]).sort((x,y)=>Math.abs(c.w[y]*c.d[y])-Math.abs(c.w[x]*c.d[x])).slice(0,2);
+ for(const f of top){await say('How sure are you about '+(FD[f]?FD[f].n.toLowerCase():'"'+c.custom[f]+'"')+'?');
+  c.sd[f]=await askChoice([{label:'Sure',value:.6},{label:'Somewhat',value:1},{label:'Barely',value:1.8}]);}
+ // 6. the heavier questions, for heavier matters
+ if(c.stakes!=='small'){
+  await say(pick(L.revQ));
+  c.harder=await askChoice([{label:c.a,value:'a'},{label:c.b,value:'b'},{label:'Neither',value:'n'}]);
+  if(c.harder!=='n')await say(pick(L.revNote));
+  const pre=engine(c,{N:2000}),lead=pre.raw>=.5?'a':'b';
+  await say('Imagine you chose "'+label(c,lead)+'"… and a year from now, it went badly. What most likely went wrong?');
+  const pm=await askChoice(fs.map(f=>({label:fname(c,f),value:f})).concat([{label:'I cannot imagine it',value:''}]));
+  if(pm){c.pm={f:pm,lead};await say(pick(L.pmNote));}else await say('Confidence… or blindness. Time will tell.');
+  await say(pick(L.regretQ));
+  c.regret=await askChoice([{label:c.a,value:'a'},{label:c.b,value:'b'},{label:'Neither',value:'n'}]);
+ }
+}
+
+async function judge(c){
+ c.res=engine(c);const R=c.res;
+ await say(pick(L.look));
+ await sleep(900);
+ await say(pick(L.seen),300);
+ await say(pick(L.coinTalk));
+ await say(pick(L.touch));
+ const r=await toss(c);
+ c.result=r;
+ if(r==='edge'){
+  await say('…On its edge.',300);await say('Neither. Ask a better question.');
+  c.final='edge';finish(c);return endScreen();
+ }
+ const d=document.createElement('div');d.className='verdict';d.innerHTML='<span class="stamp"></span>';d.firstChild.textContent=label(c,r);{const t=label(c,r),n=t.length,lw=Math.max(...t.split(/\s+/).map(x=>x.length));if(n>22||lw>9)d.firstChild.classList.add('s');else if(n>11||lw>7)d.firstChild.classList.add('m');}
+ sThud();await addEl(d);
+ const pct=Math.round((r==='a'?R.p:1-R.p)*100);
+ const sm=document.createElement('p');sm.className='small';sm.textContent=pct+' in 100 futures favoured it · Case No. '+pad(c.no);
+ const sm2=document.createElement('p');sm2.className='small';sm2.textContent='Your choice. Your responsibility.';
+ const lb=document.createElement('button');lb.className='linkbtn';lb.textContent='How did I decide?';lb.onclick=()=>workings(c);
+ await addEl(sm);await addEl(sm2);await addEl(lb);
+ // reasons
+ const sg=r==='a'?1:-1;
+ const con=c.factors.map(f=>({f,v:R.w[f]*R.d[f]*sg})).sort((x,y)=>y.v-x.v);
+ const why=f=>FD[f]?FD[f].why:'"'+c.custom[f]+'" tips it.';
+ const mind=f=>FD[f]?FD[f].mind:'Mind "'+c.custom[f]+'".';
+ if(pct<50||con[0].v<=0)await say(pick(L.underdog));else await say(why(con[0].f));
+ const worst=con[con.length-1];if(worst.v<0)await say(mind(worst.f));
+ const expected=R.D>0?'a':R.D<0?'b':null;
+ if(expected===r){
+  if(R.tip)await say('It would turn only if '+(FD[R.tip.f]?FD[R.tip.f].n.toLowerCase():'"'+c.custom[R.tip.f]+'"')+' weighed '+Math.round(R.tip.to*100)+' parts in a hundred, not '+Math.round(R.tip.from*100)+'.');
+  else await say('Nothing on the scales could turn this. Only luck.');
+ }
+ // gut
+ await say(pick(L.gutQ));
+ const g=await askChoice([{label:'Relieved',value:'r'},{label:'Disappointed',value:'d'}]);
+ c.gut=g;
+ if(g==='d'){
+  const o=r==='a'?'b':'a';
+  await say('Then your heart leans toward "'+label(c,o)+'". The coin only revealed it.');
+  await say('Will you follow it?');
+  const f=await askChoice([{label:'Follow my heart',value:o},{label:'Keep the verdict',value:r}]);
+  c.final=f;await say(f===o?'So be it. The heart was the true judge today.':'Discipline. Rare. I respect it.');
+ }else{c.final=r;await say(pick(L.relieved));}
+ finish(c);
+ if(LORE.some(x=>x.at===store.cases.length))await say('Something stirs in the ledger… a sealed note has opened.');
+ return endScreen();
+}
+
+function finish(c){
+ const keep={};['no','t','q','a','b','cat','stakes','state','factors','custom','w','d','sd','harder','pm','regret','result','gut','final'].forEach(k=>{if(c[k]!==undefined)keep[k]=c[k];});
+ keep.p=c.res?c.res.p:null;keep.rating=null;
+ store.cases.push(keep);
+ if(c.w&&c.factors&&!(c.custom&&c.custom.x1))store.cw[c.cat||'none']=Object.assign({},c.w);
+ save();
+}
+
+async function endScreen(){
+ await say(pick(L.closing));
+ const r=await askChoice([{label:'Another case',value:1},{label:'Open the ledger',value:2}]);
+ if(r===2){ledger();return endScreen();}
+ return newCase();
+}
+
+/* ---------- coin ---------- */
+function toss(c){return new Promise(res=>{
+ const st=$('#stage'),coin=$('#coin'),lift=$('#lift'),cap=$('#tossCap');
+ $('#legA').textContent=c.a;$('#legB').textContent=c.b;
+ cap.innerHTML='<span class="hint">Touch the coin.</span>';
+ coin.style.transition='none';coin.style.transform='rotateX(0deg)';
+ st.classList.add('show');
+ let done=false;
+ const go=async()=>{if(done)return;done=true;unlock();
+  const p=c.res.p;let r=Math.random()<p?'a':'b';
+  if(Math.abs(p-.5)<.08&&Math.random()<1/30)r='edge';
+  cap.textContent='';flare();sClink();
+  const deg=(6+Math.floor(Math.random()*3))*360+(r==='a'?0:r==='b'?180:90);
+  lift.classList.remove('up');void lift.offsetWidth;lift.classList.add('up');
+  coin.style.transition='transform 2.4s cubic-bezier(.2,.6,.3,1)';coin.style.transform='rotateX('+deg+'deg)';
+  await sleep(2400);sThud();sClink();await sleep(140);sClink();
+  coin.style.transition='transform .17s ease-in-out';
+  for(const k of [11,-7,4,-2,0]){coin.style.transform='rotateX('+(deg+k)+'deg)';await sleep(170);}
+  cap.textContent=r==='edge'?'…it stands on its edge.':(r==='a'?'The Scale: ':'The Star: ')+label(c,r);
+  await sleep(1500);st.classList.remove('show');coin.onclick=null;res(r);};
+ coin.onclick=go;
+});}
+
+/* ---------- sheets ---------- */
+const sheet=$('#sheet'),body=$('#sheetBody');
+function openSheet(html,locked){body.innerHTML=html;sheet.classList.toggle('locked',!!locked);sheet.classList.add('show');sheet.scrollTop=0;sRustle();}
+function closeSheet(){sheet.classList.remove('show','locked');sRustle();}
+$('#closeSheet').onclick=closeSheet;
+
+function workings(c){const R=c.res,pc=x=>Math.round(x*100)+'%';
+ const fav=v=>v>0?esc(c.a):v<0?esc(c.b):'Same';const str={1:'slightly',2.5:'clearly',4:'hugely'};
+ const rows=c.factors.map(f=>'<tr><td>'+esc(fname(c,f))+'</td><td>'+pc(R.w[f])+'</td><td>'+fav(c.d[f])+(c.d[f]?' <i>('+str[Math.abs(c.d[f])]+')</i>':'')+'</td><td>'+(R.d[f]>0?'+':'')+R.d[f].toFixed(2)+'</td><td>±'+R.sd[f].toFixed(1)+'</td></tr>').join('');
+ const fsName=f=>esc(fname(c,f));
+ openSheet('<h2>The Workings</h2><p><i>'+esc(c.q)+'</i></p>'+
+ '<h3>1 · Your scales</h3><p style="font-size:15px">Your ranking turned into weights by the <b>rank-order centroid</b> method (first place counts most, each place after a little less). Future lifted 15% for present bias.</p>'+
+ '<h3>2 · Path against path</h3><table><tr><th>Factor</th><th>Weight</th><th>Favours</th><th>Score</th><th>Doubt</th></tr>'+rows+'</table>'+
+ '<p style="font-size:14px">Score: + favours "'+esc(c.a)+'", − favours "'+esc(c.b)+'". Slightly = 1, clearly = 2.5, hugely = 4, after corrections.</p>'+
+ '<h3>3 · Corrections for the mind</h3><p style="font-size:15px">• <b>Impact bias</b>: joy differences ×0.8 (people over-predict feelings).<br>• <b>Loss aversion</b>: money, safety &amp; health differences ×0.9 (fear shouts louder than it should).<br>• <b>Present bias</b>: future weight +15%.'+
+ (c.pm?'<br>• <b>Pre-mortem</b>: you feared "'+fsName(c.pm.f)+'" for "'+esc(label(c,c.pm.lead))+'", so it was marked down and given more doubt.':'')+'</p>'+
+ '<h3>4 · Ten thousand futures</h3><p style="font-size:15px">Each score wobbled at random by its doubt, '+R.N.toLocaleString()+' times.<br>"'+esc(c.a)+'" won <b>'+R.wa.toLocaleString()+'</b>; "'+esc(c.b)+'" won <b>'+(R.N-R.wa).toLocaleString()+'</b>.</p>'+
+ '<h3>5 · Adjustments</h3><p style="font-size:15px">Regret: '+(R.bonus?('you would miss "'+esc(label(c,c.regret))+'" more, +5% toward it.'):'none.')+'<br>Harder to undo: '+(R.rev?('"'+esc(label(c,c.harder))+'", '+Math.round(Math.abs(R.rev)*100)+'% away from it (keep doors open).'):'none.')+'</p>'+
+ '<h3>6 · The coin</h3><p style="font-size:15px">Loaded at <b>'+pc(R.p)+'</b> for "'+esc(c.a)+'" and <b>'+(100-Math.round(R.p*100))+'%</b> for "'+esc(c.b)+'". Never beyond 85%, so luck keeps a seat.</p>'+
+ '<h3>7 · Tipping point</h3><p style="font-size:15px">'+(R.tip?('The expected winner would change if '+fsName(R.tip.f)+' carried '+pc(R.tip.to)+' of the weight instead of '+pc(R.tip.from)+'.'):'No single factor could turn it.')+'</p>'+
+ '<p style="font-size:14px;color:#86735d">No spirits. Only arithmetic, honestly kept. The decision, and what follows from it, remain yours.</p>');}
+
+const LORE=[
+ {at:10,t:'Note I. — I was a clerk once, in a court that no longer stands. Forty years I weighed the quarrels of others. I never once weighed my own.'},
+ {at:25,t:'Note II. — The coin came from a woman who would not give her name. She pressed it into my palm and said: "It does not lie. It only leans."'},
+ {at:50,t:'Note III. — Fifty cases. Perhaps you see it now. I never chose for you. I only held the candle while you looked.'}
+];
+function ledger(){const cs=store.cases.slice().reverse();
+ let h='<h2>The Ledger</h2>';
+ if(!cs.length)h+='<p><i>No cases yet. The pages are clean.</i></p>';
+ cs.forEach(c=>{const d=new Date(c.t);
+  h+='<div class="entry"><div class="n">No. '+pad(c.no)+' · '+d.toLocaleDateString()+'</div><div class="q">'+esc(c.q)+'</div><div class="r">Coin: '+esc(c.result==='edge'?'edge':label(c,c.result))+
+  (c.final&&c.final!==c.result&&c.final!=='edge'?' · Followed heart: '+esc(label(c,c.final)):'')+(c.rating?' · Judged: '+c.rating:'')+'</div></div>';});
+ h+='<h3>Sealed Notes</h3>';
+ LORE.forEach(x=>{h+=store.cases.length>=x.at?'<div class="lore">'+x.t+'</div>':'<div class="sealed">— sealed · opens at '+x.at+' cases —</div>';});
+ h+='<p><button class="linkbtn" id="termsLink" style="margin:20px 0 0">Terms of the Court</button></p><button class="burn" id="burn">Burn the ledger</button>';
+ openSheet(h);
+ $('#termsLink').onclick=()=>terms(false);
+ const b=$('#burn');let armed=false;b.onclick=()=>{if(!armed){armed=true;b.textContent='Tap again to burn everything';return;}
+  store=Object.assign(fresh(),{sound:store.sound,music:store.music,agreed:store.agreed});save();b.textContent='Burned.';setCaseNo(1);};
+}
+
+const TERMS='<h2>Terms of the Court</h2><p class="tsub">User agreement · please read before you sit</p>'+
+ '<ol class="terms">'+
+ '<li><b>What this is.</b> The Arbiter is a reflection tool and a game of chance. It helps you lay out your thoughts and clear a little of the fog. It does not know your life, and it cannot see the future.</li>'+
+ '<li><b>Your decision, your responsibility.</b> Every decision you make after using this app is yours alone. You are solely and fully responsible for your choices, your actions and their consequences. The maker of this app accepts no responsibility or liability for any outcome, loss, damage or harm of any kind.</li>'+
+ '<li><b>Not professional advice.</b> Nothing here is medical, legal, financial, psychological or any other professional advice. For such matters, consult a qualified professional.</li>'+
+ '<li><b>The coin can be wrong.</b> Results come only from your own answers, simple arithmetic and deliberate randomness. The "futures" are simulations, not predictions. The character, voice and mystery are for atmosphere only.</li>'+
+ '<li><b>Do not use it for</b> emergencies, medical or treatment decisions, anything illegal, or anything that could put you or anyone else in danger.</li>'+
+ '<li><b>If you are struggling.</b> If you are in distress or thinking of harming yourself, do not use this app. Talk to someone now. In India: Tele-MANAS <b>14416</b>, free, 24/7.</li>'+
+ '<li><b>Your data.</b> Your cases are stored only on this device. Nothing is sent anywhere. Clearing browser data or burning the ledger erases them permanently.</li>'+
+ '<li><b>As is.</b> The app is provided "as is", without warranty of any kind. If you are under 18, use it with a parent or guardian.</li>'+
+ '</ol><p class="tsub">By tapping "I accept", you confirm that you have read and agree to these terms.</p>';
+function terms(gate){
+ openSheet(TERMS+(gate?'<div class="tbtns"><button class="opt" id="tAccept">I accept</button><button class="opt" id="tLeave">Leave</button></div>':''),gate);
+ if(!gate)return;
+ $('#tAccept').onclick=()=>{store.agreed=TERMS_V;save();closeSheet();begin();};
+ $('#tLeave').onclick=()=>{closeSheet();musicStop();$('#door').classList.remove('gone');};
+}
+
+/* ---------- header + door ---------- */
+const sb=$('#soundBtn'),mb=$('#musicBtn');
+const sl=()=>{sb.classList.toggle('off',!store.sound);mb.classList.toggle('off',!store.music);};sl();
+sb.onclick=()=>{store.sound=!store.sound;save();sl();};
+mb.onclick=()=>{unlock();store.music=!store.music;save();sl();if(store.music)musicStart();else musicStop();};
+$('#ledgerBtn').onclick=ledger;
+$('#knock').onclick=async()=>{unlock();sKnock();await sleep(260);sKnock();await sleep(500);sRustle();musicStart();$('#door').classList.add('gone');await sleep(500);if(store.agreed!==TERMS_V)terms(true);else begin();};
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&!/claude/.test(location.hostname))navigator.serviceWorker.register('sw.js').catch(()=>{});}catch(e){}
+})();
+</script>
+</body>
+</html>
